@@ -21,6 +21,9 @@ public class GuessNumberGame{
     if (setNum>9999) {setNum=setNum%10000;}
     num=setNum;
   }
+  public int getNum() {
+    return num;
+  }
   public static String parse(int _ges, int _rep) {
     /**
      * generate reply message from integer return from Method "check".

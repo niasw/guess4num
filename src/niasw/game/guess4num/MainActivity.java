@@ -16,7 +16,7 @@ import android.widget.TextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log; //DEBUG
 
 /**
@@ -37,17 +37,35 @@ public class MainActivity extends Activity {
   @Override
     public void onCreate(Bundle icicle) {
       super.onCreate(icicle);
-      Log.i("Hi! This is guess4num Program.","onCreate"); //DEBUG
       setContentView(R.layout.main);
       txtWlcm = (TextView)findViewById(R.id.txtWlcm);
       txtScrn = (TextView)findViewById(R.id.txtScrn);
       bttnClr = (Button)findViewById(R.id.bttnClr);
       bttnGss = (Button)findViewById(R.id.bttnGss);
       edtNums = (EditText)findViewById(R.id.edtNums);
+      txtScrn.setMovementMethod(ScrollingMovementMethod.getInstance());
       bttnClr.setOnClickListener(bttnListener);
       bttnGss.setOnClickListener(bttnListener);
       edtNums.setOnKeyListener(edtKeyListener);
-      gm = new GuessNumberGame();
+      if (icicle==null) {
+        gm = new GuessNumberGame();
+      } else {
+        txtWlcm.setText(icicle.getString("txtWlcm"));
+        txtScrn.setText(icicle.getString("txtScrn"));
+        edtNums.setText(icicle.getString("edtNums"));
+        gm = new GuessNumberGame(icicle.getInt("gm.num"));
+        initFlag = icicle.getBoolean("initFlag");
+      }
+    }
+
+  @Override
+    protected void onSaveInstanceState(Bundle icicle) {
+      super.onSaveInstanceState(icicle);
+      icicle.putString("txtWlcm",txtWlcm.getText().toString());
+      icicle.putString("txtScrn",txtScrn.getText().toString());
+      icicle.putString("edtNums",edtNums.getText().toString());
+      icicle.putInt("gm.num",gm.getNum());
+      icicle.putBoolean("initFlag",initFlag);
     }
 
   private OnClickListener bttnListener = new OnClickListener() {
@@ -72,24 +90,24 @@ public class MainActivity extends Activity {
                 MainActivity.this.txtScrn.setText(MainActivity.this.txtScrn.getText()+_repstr+"\n");
               }
               if (_rep==400) {
-                MainActivity.this.tst = Toast.makeText(getApplicationContext(),"You Win ~", Toast.LENGTH_LONG); //DEBUG
-                MainActivity.this.tst.setGravity(Gravity.CENTER, 0, 0); //DEBUG
-                MainActivity.this.tst.show(); //DEBUG
-                MainActivity.this.txtWlcm.setText("You Win ~");
+                MainActivity.this.tst = Toast.makeText(getApplicationContext(),R.string.winMssg, Toast.LENGTH_LONG); 
+                MainActivity.this.tst.setGravity(Gravity.CENTER, 0, 0); 
+                MainActivity.this.tst.show(); 
+                MainActivity.this.txtWlcm.setText(R.string.winMssg);
               } else {
-                MainActivity.this.tst = Toast.makeText(getApplicationContext(),_repstr, Toast.LENGTH_LONG); //DEBUG
-                MainActivity.this.tst.setGravity(Gravity.CENTER, 0, 0); //DEBUG
-                MainActivity.this.tst.show(); //DEBUG
+                MainActivity.this.tst = Toast.makeText(getApplicationContext(),_repstr, Toast.LENGTH_LONG); 
+                MainActivity.this.tst.setGravity(Gravity.CENTER, 0, 0); 
+                MainActivity.this.tst.show(); 
               }
               MainActivity.this.edtNums.setText("");
             } catch (NumberFormatException e) {
-              MainActivity.this.tst = Toast.makeText(getApplicationContext(),e.toString(), Toast.LENGTH_LONG); //DEBUG
-              MainActivity.this.tst.setGravity(Gravity.CENTER, 0, 0); //DEBUG
-              MainActivity.this.tst.show(); //DEBUG
+              MainActivity.this.tst = Toast.makeText(getApplicationContext(),e.toString(), Toast.LENGTH_LONG); 
+              MainActivity.this.tst.setGravity(Gravity.CENTER, 0, 0); 
+              MainActivity.this.tst.show(); 
             } catch (Exception e) {
-              MainActivity.this.tst = Toast.makeText(getApplicationContext(),e.toString(), Toast.LENGTH_LONG); //DEBUG
-              MainActivity.this.tst.setGravity(Gravity.CENTER, 0, 0); //DEBUG
-              MainActivity.this.tst.show(); //DEBUG
+              MainActivity.this.tst = Toast.makeText(getApplicationContext(),e.toString(), Toast.LENGTH_LONG); 
+              MainActivity.this.tst.setGravity(Gravity.CENTER, 0, 0); 
+              MainActivity.this.tst.show(); 
             }
             break;
           default:
@@ -115,24 +133,24 @@ public class MainActivity extends Activity {
               MainActivity.this.txtScrn.setText(MainActivity.this.txtScrn.getText()+_repstr+"\n");
             }
             if (_rep==400) {
-              MainActivity.this.tst = Toast.makeText(getApplicationContext(),"You Win ~", Toast.LENGTH_LONG); //DEBUG
-              MainActivity.this.tst.setGravity(Gravity.CENTER, 0, 0); //DEBUG
-              MainActivity.this.tst.show(); //DEBUG
-              MainActivity.this.txtWlcm.setText("You Win ~");
+              MainActivity.this.tst = Toast.makeText(getApplicationContext(),R.string.winMssg, Toast.LENGTH_LONG); 
+              MainActivity.this.tst.setGravity(Gravity.CENTER, 0, 0); 
+              MainActivity.this.tst.show(); 
+              MainActivity.this.txtWlcm.setText(R.string.winMssg);
             } else {
-              MainActivity.this.tst = Toast.makeText(getApplicationContext(),_repstr, Toast.LENGTH_LONG); //DEBUG
-              MainActivity.this.tst.setGravity(Gravity.CENTER, 0, 0); //DEBUG
-              MainActivity.this.tst.show(); //DEBUG
+              MainActivity.this.tst = Toast.makeText(getApplicationContext(),_repstr, Toast.LENGTH_LONG); 
+              MainActivity.this.tst.setGravity(Gravity.CENTER, 0, 0); 
+              MainActivity.this.tst.show(); 
             }
             MainActivity.this.edtNums.setText("");
           } catch (NumberFormatException e) {
-            MainActivity.this.tst = Toast.makeText(getApplicationContext(),e.toString(), Toast.LENGTH_LONG); //DEBUG
-            MainActivity.this.tst.setGravity(Gravity.CENTER, 0, 0); //DEBUG
-            MainActivity.this.tst.show(); //DEBUG
+            MainActivity.this.tst = Toast.makeText(getApplicationContext(),e.toString(), Toast.LENGTH_LONG); 
+            MainActivity.this.tst.setGravity(Gravity.CENTER, 0, 0); 
+            MainActivity.this.tst.show(); 
           } catch (Exception e) {
-            MainActivity.this.tst = Toast.makeText(getApplicationContext(),e.toString(), Toast.LENGTH_LONG); //DEBUG
-            MainActivity.this.tst.setGravity(Gravity.CENTER, 0, 0); //DEBUG
-            MainActivity.this.tst.show(); //DEBUG
+            MainActivity.this.tst = Toast.makeText(getApplicationContext(),e.toString(), Toast.LENGTH_LONG); 
+            MainActivity.this.tst.setGravity(Gravity.CENTER, 0, 0); 
+            MainActivity.this.tst.show(); 
           }
         }
         return false;

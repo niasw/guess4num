@@ -6,4 +6,5 @@
     <string name="edthint">input number</string>
     <string name="bttnClr">Clear</string>
     <string name="bttnGss">Guess</string>
+    <string name="winMssg">You Win ~ (^u^)</string>
 </resources>
