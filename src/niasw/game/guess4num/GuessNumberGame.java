@@ -54,26 +54,19 @@ public class GuessNumberGame{
       _ges=_ges/10;
       _num=_num/10;
     }
-    int tflag; //record perfect match
-    int tit1,tit2; //match index
-    for (int it2=0;it2<4;it2++) {
-      tflag=0;tit1=-1;tit2=-1;
-      for (int it1=0;it1<4;it1++) {
-        if (cges[it1]==cnum[it2]&&cnum[it2]!='-') {
-          if (tflag<1) {
-            include++;tflag=1;
-            tit1=it1;tit2=it2;
-          }
-          if (it1==it2&&tflag<2) {
-            perfect++;tflag=2;
-            tit1=it1;tit2=it2;
-          }
-        }
-      }
-      if (tit1>=0&&tit2>=0) {
-        cges[tit1]='-';cnum[tit2]='-';
+    for (int it=0;it<4;it++) {
+      if (cges[it]==cnum[it]) {
+        perfect++;cges[it]='-';cnum[it]='-';
       }
     }
-    return perfect*99+include;
+    for (int it2=0;it2<4;it2++) {
+      for (int it1=0;it1<4;it1++) {
+        if (cges[it1]==cnum[it2]&&cnum[it2]!='-') {
+            include++;cges[it1]='-';cnum[it2]='-';
+            assert(it1!=it2):"What? Leakage detected from Perfect Match Scanning!";
+        }
+      }
+    }
+    return perfect*100+include;
   }
 }
