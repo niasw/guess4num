@@ -3,7 +3,7 @@
 
 猜数字是我大概十年前在文曲星（电子词典）上看到的一款老游戏，我把它搬运到Android平台上以对当年科技上的先驱致敬。
 
-[English Readme](https://github.com/niasw/guess4num/blob/master/README.md)
+[English Readme](https://github.com/niasw/guess4num/blob/master/README-en-rUS.md)
 
 Copyleft (x) 2014 孙小白 (niasw) <niasw@pku.edu.cn>
 
