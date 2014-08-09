@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <string name="appname">Guess4num</string>
+    <string name="welcome">Welcome to game Guess4num! I\'m niasw (Sun Smallwhite).</string>
+    <string name="helpmsg">  Please guess a 4 digits number. (may begin with 0)\n  \'A\' represents for number of digits match perfectly,\n  \'B\' represents for number of digits match, but at wrong location.\n  If more than 1 digit matches the same digit you gave, digits won\'t be counted twice.\n  If more than 1 location matches the same digit you gave, locations won\'t be counted twice.\n  This old game was on my WenQu Star around 10 years ago, and I carry it here to show my respect to the pioneer that time.\n  Theoretically, you can win the game by only guessing 8 times. Have fun ~</string>
+    <string name="edthint">input number</string>
+    <string name="bttnClr">Clear</string>
+    <string name="bttnGss">Guess</string>
+    <string name="winMssg">You Win ~ (^u^)</string>
+</resources>
