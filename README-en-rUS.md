@@ -3,7 +3,7 @@ Guess 4 Numbers
 
 Guess4num is an old game I saw on my WenQu Star (an e-dictionary) around 10 years ago. I carry it here to show my respect to the pioneer in technology that time.
 
-[Chinese](https://github.com/niasw/guess4num/blob/master/README-zh-rCN.md)
+[Chinese Readme](https://github.com/niasw/guess4num/blob/master/README-zh-rCN.md)
 
 Copyleft (x) 2014 Sun Smallwhite (niasw) <niasw@pku.edu.cn>
 
