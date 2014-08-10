@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <string name="appname">猜數字</string>
+    <string name="welcome">歡迎來到猜數字！我是niasw(孫小白).</string>
+    <string name="helpmsg">    猜個四位數（可能以0開始）\n    "A"表示猜的數字有且在正確的位置上，\n    "B"表示猜的數字有但不在這個位置上。\n    如果出現多個數字與所猜的某數字相同，該數字只算壹次；\n    如果出現多個位置與所猜的某數字壹致，正確位置優先，但也只算壹次。\n    這個古董遊戲是我大概十年前在我的文曲星（電子詞典）上看到的，我把它搬運到Android平臺以表示對當年科技先驅的敬意。\n    理論上，只需要猜八次就可以贏喔～祝玩得愉快！</string>
+    <string name="edthint">我猜什麽數字呢？</string>
+    <string name="bttnClr">清空</string>
+    <string name="bttnGss">提交</string>
+    <string name="winMssg">太棒了，勝利啦～(^u^)</string>
+</resources>
