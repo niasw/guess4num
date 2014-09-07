@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="guess4num" default="help" basedir=".">
+
+  <description>
+    Use ant to build guess4num. This build.xml is written manually.
+  </description>
+
+  <property environment="env"/> <!-- Get Command Line Shell Environment --> 
+  <!-- 'location' is better than 'value' for '\','/' free. -->
+  <property name="java.home" location="${env.JAVA_HOME}"/>
+  <property name="java.classpath" location="${env.CLASSPATH}"/>
+  <property name="android.home" location="${env.ANDROID_HOME}"/>
+  <property name="sdk.dir" location="${android.home}"/>
+
+  <property name="app.buildToolVersion" value="20"/> <!--android sdk build tool version-->
+  <property name="sdk.java.version" value="1.7"/> <!-- proguard not support java 1.8 -->
+  <property name="verbose" value="false"/> <!-- default false -->
+
+  <!-- Use android tasks for convenience -->
+  <path id="android.antlibs">
+    <pathelement path="${android.home}/tools/lib/ant-tasks.jar"/>
+  </path>
+  <taskdef resource="anttasks.properties" classpathref="android.antlibs"/>
+
+  <property name="app.name" value="guess4num"/> <!-- Application Name -->
+  <property name="app.copyright" value="Copyright 2014 Sun Sibai"/>
+
+  <property name="res" location="res"/> <!-- Directory for resources  -->
+  <property name="src" location="src"/> <!-- Directory for java codes -->
+  <property name="gen" location="gen"/> <!-- Directory for temp files -->
+  <property name="bin" location="bin"/> <!-- Directory for  products  -->
+  <property name="lib" location="lib"/> <!-- Directory 3rd party lib  -->
+  <property name="doc" location="doc"/> <!-- Directory for documents  -->
+
+  <property name="app.manifest" location="AndroidManifest.xml"/> <!--Abs Path-->
+  <!-- Use XPath to get properties written in .xml files -->
+  <xpath output="app.package" input="${app.manifest}" expression="/manifest/@package"/>
+  <xpath output="app.main.name" input="${app.manifest}" expression="/manifest/activity/@android:name"/>
+  <xpath output="app.targetPlatformVersion" input="${app.manifest}" expression="/manifest/uses-sdk/@android:minSdkVersion"/>
+  <property name="app.main" value="${app.package}.${app.main.name}"/> <!--Main Activity-->
+
+  <property name="gen.bin" location="${gen}/bin"/> <!-- Dir: tmp classes -->
+  <property name="gen.lib" location="${gen}/lib"/> <!-- Dir: tmp liboraries -->
+  <property name="gen.src" location="${gen}/src"/> <!-- Dir: tmp source code -->
+  <property name="gen.res" location="${gen}/res"/> <!-- Dir: tmp resources -->
+  <property name="gen.tmp" location="${gen}/tmp"/> <!-- Dir: tmp other files -->
+  <property name="gen.proguard" location="${gen}/proguard"/>
+  <property name="gen.manifest" location="${gen}/AndroidManifest.xml"/>
+  <property name="gen.aidl" location="${gen}/aidl"/>
+  <property name="gen.rsObj" location="${gen}/rsObj"/>
+  <property name="gen.rsLib" location="${gen}/rsLib"/>
+  <property name="gen.dxLib" location="${gen}/dxLib"/>
+  <!-- 'location' will transfer ".." into absolute path, caution! -->
+
+  <path id="classpath"> <!-- path settings for java compile -->
+    <!-- 'location' is better than 'value' for '\','/' free. -->
+    <pathelement location="${gen.bin}"/> <!-- classes from java source -->
+    <!-- 'path' is better than 'location' for ';',':' in use. -->
+    <!-- <pathelement path="${java.classpath}"/> -->
+    <fileset dir="${lib}"> <!-- add all jar files in ${lib} -->
+      <!-- use * for all file under current path excluding subdirs-->
+      <!-- use ** for all file under current path including subdirs -->
+      <!-- use *** for all file under all dirs under current path -->
+      <include name="**/*.jar"/>
+    </fileset>
+  </path>
+
+  <target name="help">
+    <echo level="info">
+      This is "ant help", 
+        help to introduce targets within this "build.xml".
+        This build.xml builds guess4num for Android Devices.
+        For ant usage, please run "ant -h"
+
+      List of targets:
+        init ---- get directories ready for building process.
+        help ---- print this help message.
+        clean --- remove temporary files except released products.
+        purge --- remove everything recoverable for more space.
+        compile - compile all java codes, but not to package them.
+        release - compile and package the entire program.
+        debug --- compile, package and sign with debug signature.
+        doc ----- generate documents from java source.
+    </echo>
+  </target>
+
+  <target name="init">
+    <tstamp/> <!-- Mark Time Stamp -->
+    <mkdir dir="${gen}"/>
+    <mkdir dir="${gen.bin}"/>
+    <mkdir dir="${gen.lib}"/>
+    <mkdir dir="${gen.src}"/>
+    <mkdir dir="${gen.res}"/>
+    <mkdir dir="${gen.tmp}"/>
+    <mkdir dir="${gen.aidl}"/>
+    <mkdir dir="${gen.rsObj}"/>
+    <mkdir dir="${gen.rsLib}"/>
+    <mkdir dir="${gen.dxLib}"/>
+    <mkdir dir="${gen.proguard}"/>
+    <mkdir dir="${bin}"/>
+    <mkdir dir="${doc}"/>
+    <mkdir dir="${lib}"/>
+    <mkdir dir="${src}"/>
+    <mkdir dir="${res}"/>
+  </target>
+
+  <target name="clean"> <!-- Remove Temporary Files -->
+    <delete dir="${gen}" failonerror="false"/>
+  </target>
+  <target name="purge" depends="clean"> <!-- Remove Everything recoverable -->
+    <delete dir="${bin}" failonerror="false"/>
+    <delete dir="${doc}" failonerror="false"/>
+  </target>
+
+  <target name="compile" depends="init" description="compile java codes">
+    <echo level="info"> Setting Building Configuration ... </echo>
+    <condition property="exe" value=".exe" else=""><os family="windows"/></condition>
+    <condition property="bat" value=".bat" else=""><os family="windows"/></condition>
+
+    <property name="android.tools" location="${android.home}/tools"/>
+    <property name="android.platform.tools" location="${android.home}/platform-tools"/>
+    <property name="android.platform.detail" value="${android.home}/platforms/android-${app.targetPlatformVersion}"/> <!--android sdk platform used-->
+    <property name="android.target.androidjar" value="${android.platform.detail}/android.jar"/> <!-- android.jar in this platform -->
+    <property name="android.build.tools" location="${android.home}/build-tools"/>
+    <!-- I quick linked build-tools for convenience. See 'makeLink2Version.sh' please -->
+    <property name="adb" location="${android.platform.tools}/adb${exe}"/>
+    <property name="lint" location="${android.tools}/lint${bat}"/>
+    <property name="aidl" location="${android.build.tools}/aidl${exe}"/>
+    <property name="aapt" location="${android.build.tools}/aapt${exe}"/>
+    <property name="dx" location="${android.build.tools}/dx${bat}"/>
+    <property name="zipalign" location="${android.build.tools}/zipalign${exe}"/>
+
+    <dependency libraryFolderPathOut="project.library.folder.path"
+                libraryPackagesOut="project.library.packages"
+                libraryManifestFilePathOut="project.library.manifest.file.path"
+                libraryResFolderPathOut="project.library.res.folder.path"
+                libraryBinAidlFolderPathOut="project.library.bin.aidl.folder.path"
+                libraryRFilePathOut="project.library.r.file.path"
+                libraryNativeFolderPathOut="project.library.native.folder.path"
+                jarLibraryPathOut="project.all.jars.path"
+                renderscriptSupportLibsOut="project.rs.support.libs.path"
+                targetApi="${app.buildToolVersion}"
+                buildToolsFolder="${android.build.tools}"
+                verbose="${verbose}"/>
+
+    <mergemanifest appManifest="${app.manifest}" outManifest="${gen.manifest}" enabled="false">
+      <library refid="project.library.manifest.file.path"/>
+    </mergemanifest>
+
+    <echo level="info"> Auto-Generate Source Files: aidl, RenderScript, R.java </echo>
+    <echo level="info">   aidl ... (aidl) </echo>
+    <aidl executable="${aidl}" framework="${android.platform.detail}/framework.aidl" genFolder="${gen}" aidlOutFolder="${gen.aidl}" libraryBinAidlFolderPathRefid="project.library.bin.aidl.folder.path">
+      <source path="${src}"/>
+    </aidl>
+    <echo level="info">   RenderScript ... </echo>
+    <!-- renderscript generates resources, so it must be called before aapt -->
+    <renderscript buildToolsRoot="${android.build.tools}" genFolder="${gen}" resFolder="${gen.res}" rsObjFolder="${gen.rsObj}" libsFolder="${gen.rsLib}" targetApi="${app.buildToolVersion}" optLevel="O3" binFolder="${gen.bin}">
+      <source path="${src}"/>
+    </renderscript>
+    <echo level="info">   R.java ... (aapt -> package) </echo>
+    <copy todir="${gen.res}"><!-- aapt Overlay problem about value layout. -->
+      <fileset dir="${res}">
+        <include name="values*/strings.xml"/>
+        <include name="values*/color.xml"/>
+      </fileset>
+    </copy>
+    <aapt executable="${aapt}" command="package" manifest="${gen.manifest}" androidjar="${android.target.androidjar}" rfolder="${gen.src}" binFolder="${gen.bin}" libraryResFolderPathRefid="project.library.res.folder.path" libraryPackagesRefid="project.library.packages" libraryRFileRefid="project.library.r.file.path" proguardFile="${gen.proguard}/proguard.txt" verbose="${verbose}">
+      <res path="${res}"/>
+      <res path="${gen.res}"/>
+    </aapt>
+    <echo level="info">   build configure ...</echo>
+    <buildconfig genFolder="${gen.src}" package="${app.package}"/>
+
+    <echo level="info"> Compile Java Source Files. (javac) </echo>
+    <path id="android.target.classpath">
+      <pathelement location="${android.target.androidjar}" />
+    </path>
+    <javac destdir="${gen.bin}" bootclasspathref="android.target.classpath" classpathref="project.all.jars.path" includeAntRuntime="false" source="${sdk.java.version}" target="${sdk.java.version}"> <!-- automatically compile -->
+      <src path="${gen.src}"/>
+      <src path="${src}"/>
+      <classpath refid="classpath"/>
+    </javac>
+  </target>
+
+  <target name="release" depends="compile" description="generate product">
+    <echo level="info"> Use Proguard to obfuscate classes. </echo>
+    <!-- Use proguard to guard .jar file from decompiling. Also shrink apk, maybe. -->
+    <property name="android.proguard.jar" location="${android.tools}/proguard/lib/proguard.jar"/>
+    <taskdef name="proguard" classname="proguard.ant.ProGuardTask" classpath="${android.proguard.jar}"/>
+    <!-- Link the android classpaths into a single string, separated by a platform path-separator. -->
+    <!-- If path contains spaces, it must be quoted. -->
+    <pathconvert property="project.target.classpath.value" refid="android.target.classpath">
+      <firstmatchmapper>
+        <regexpmapper from='^([^ ]*)( .*)$$' to='"\1\2"'/>
+        <!-- matches with "xyz abc" => \1="xyz",\2=" abc" -->
+        <identitymapper/>
+      </firstmatchmapper>
+    </pathconvert>
+    <property name="gen.proguard" location="${gen}/proguard"/>
+    <property name="proguard.origin.jar" value="${gen.proguard}/original.jar"/>
+    <property name="proguard.obfuscated.jar" value="${gen.proguard}/obfuscated.jar"/>
+    <!-- Link all jar classpaths into a single string. -->
+    <path id="project.all.classes.path"> <!-- include 3rd party libs -->
+      <pathelement location="${proguard.origin.jar}" />
+      <path refid="project.all.jars.path" />
+    </path>
+    <pathconvert property="project.all.classes.value" refid="project.all.classes.path">
+      <firstmatchmapper>
+        <regexpmapper from='^([^ ]*)( .*)$$' to='"\1\2"'/>
+        <identitymapper/>
+      </firstmatchmapper>
+    </pathconvert>
+    <!-- Turn the path property ${proguard.config} from an A:B:C property into a series of includes: -include A -include B -include C suitable for processing by the ProGuard task. -->
+    <!-- Note: this does not include the leading '-include "' or the closing '"'; those are added under the <proguard> call below. -->
+    <path id="proguard.configpath">
+      <pathelement location="${android.tools}/proguard/proguard-android.txt"/>
+      <pathelement location="proguard-project.txt"/>
+    </path>
+    <!-- <property name="proguard.config" refid="proguard.configpath"/> -->
+    <pathconvert pathsep='" -include "' property="proguard.configcmd" refid="proguard.configpath"/>
+    <mkdir dir="${gen.proguard}"/>
+    <delete file="${proguard.origin.jar}" failonerror="false"/>
+    <delete file="${proguard.obfuscated.jar}" failonerror="false"/>
+    <jar basedir="${gen.bin}" destfile="${proguard.origin.jar}"/>
+    <proguard>
+      -include      "${proguard.configcmd}"
+      -include      "${gen.proguard}/proguard.txt"
+      -injars       ${project.all.classes.value}
+      -outjars      "${proguard.obfuscated.jar}"
+      -libraryjars  ${project.target.classpath.value}
+      -dump         "${gen.proguard}/dump.txt"
+      -printseeds   "${gen.proguard}/seeds.txt"
+      -printusage   "${gen.proguard}/usage.txt"
+      -printmapping "${gen.proguard}/mapping.txt"
+    </proguard>
+
+    <!-- .class to .dex -->
+    <echo level="info"> Convert .class to .dex (dx) </echo>
+    <!-- set the secondary dx input: the project (and library) jar files -->
+    <!-- If a pre-dex task sets it to something else this has no effect  -->
+    <if>
+      <condition>
+        <isreference refid="dex.jar.input.ref" />
+      </condition>
+    <else>
+      <path id="dex.jar.input.ref">
+        <path refid="project.all.jars.path"/>
+        <pathelement path="${lib}"/>
+      </path>
+    </else>
+    </if>
+    <dex executable="${dx}" output="${gen.tmp}/classes.dex" dexedlibs="${gen.dxlib}" nolocals="false" forceJumbo="false" disableDexMerger="false" verbose="${verbose}">
+      <path path="${gen.bin}"/>
+      <path refid="dex.jar.input.ref"/>
+    </dex>
+
+    <!-- crunch .png to decrease size -->
+    <echo level="info"> Compress .png images in resources. (aapt -> crunch) </echo>
+    <exec executable="${aapt}" taskName="crunch">
+      <arg value="crunch"/>
+      <arg value="-v"/>
+      <arg value="-S"/>
+      <arg path="${res}"/>
+      <arg value="-C"/>
+      <arg path="${gen.res}"/>
+    </exec>
+
+    <!-- update resources and package them (recall aapt -> package) -->
+    <echo level="info"> Package resources to .ap_ file.  (aapt -> package) </echo>
+    <aapt executable="${aapt}" command="package" manifest="${gen.manifest}" androidjar="${android.target.androidjar}" apkfolder="${gen.tmp}" nocrunch="true" resourcefilename="${app.name}.ap_" libraryResFolderPathRefid="project.library.res.folder.path" libraryPackagesRefid="project.library.packages" libraryRFileRefid="project.library.r.file.path" buildType="release" previousBuildType="release" verbose="${verbose}">
+      <res path="${gen.res}" />
+      <res path="${res}" />
+    </aapt>
+
+    <!-- use apkbuilder to package the application. -->
+    <echo level="info"> Package application to .apk file. (apkbuilder) </echo>
+    <apkbuilder outfolder="${gen.tmp}" resourcefile="${app.name}.ap_" apkfilepath="${bin}/${app.name}-unsign.apk" verbose="${verbose}">
+      <dex path="${gen.tmp}/classes.dex"/>
+      <sourcefolder path="${res}"/>
+      <jarfile refid="project.all.jars.path" />
+      <nativefolder path="${lib}" />
+      <nativefolder refid="project.library.native.folder.path" />
+      <nativefolder refid="project.rs.support.libs.path" />
+      <nativefolder path="${gen.rsLib}" />
+    </apkbuilder>
+
+    <!-- sign and final compress -->
+    <echo level="info"> 
+------------------- NOTICE -------------------
+    </echo>
+    <echo level="info"> to complete releasing your app, please sign it with jarsigner and compress it with zipalign </echo>
+    <echo level="info"> an example command line script:
+
+jarsigner -keystore KEYSTOREPATH/NAME.keystore -digestalg SHA1 -sigalg MD5withRSA -signedjar bin/guess4num-signed.apk bin/guess4num-unsign.apk NAME
+
+zipalign -v 4 bin/guess4num-signed.apk bin/guess4num.apk
+
+    </echo>
+  </target>
+
+  <target name="debug" depends="release" description="install unpackaged program using adb">
+    <echo level="info"> 
+------------------- NOTICE -------------------
+    </echo>
+    <echo level="info"> you should use adb to debug an app on your own. run adb in command line please. </echo>
+    <echo level="info"> an example command line script:
+
+android avd # start your android virtual machine.
+
+# adb uninstall bin/guess4num.apk # uninstall program if signature changed.
+
+adb install bin/guess4num.apk # install program
+
+adb logcat | less # check log
+
+    </echo>
+  </target>
+
+  <target name="doc" depends="init" description="generate documents">
+    <javadoc packagenames="${app.name}.**" sourcepath="${src}" defaultexcludes="yes" destdir="${doc}" author="true" version="true" use="true" windowtitle="${app.name} API (Android Version)">
+      <doctitle><![CDATA[<h1>${app.name}: ${app.name} API</h1>]]></doctitle>
+      <bottom><![CDATA[<i>${app.copyright}</i>]]></bottom>
+      <tag name="todo" scope="all" description="TO DO:"/>
+    </javadoc>
+  </target>
+
+</project>
